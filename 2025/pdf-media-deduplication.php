@@ -42,6 +42,13 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
         private $start_post_id = 1;
 
         /**
+         * Holds the last post ID returned in the batch.
+         *
+         * @var int|null
+         */
+        private $last_post_id = null;
+
+        /**
          * Deduplicate PDF media files in the WordPress media library.
          *
          * ## OPTIONS
@@ -85,7 +92,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
                     SELECT * FROM {$wpdb->posts}
                     WHERE post_type = %s
                       AND post_mime_type = %s
-                      AND ID >= %d
+                      AND ID > %d
                     ORDER BY ID ASC
                     LIMIT %d
                     ",
@@ -95,6 +102,12 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
                     $this->batch_size
                 )
             );
+
+            // Set the last_post_id property to the last post ID in the results, if any
+            if ( ! empty( $results ) ) {
+                $last_post = end( $results );
+                $this->last_post_id = $last_post->ID;
+            }
 
             return $results;
         }
