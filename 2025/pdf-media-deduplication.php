@@ -13,17 +13,34 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
         private $batch_size = 100;
 
         /**
+         * Whether to run in test mode (dry run).
+         *
+         * @var bool
+         */
+        private $dry_run = false;
+
+        /**
          * Deduplicate PDF media files in the WordPress media library.
+         *
+         * ## OPTIONS
+         *
+         * [--dry-run]
+         * : Run the command in test mode without making changes.
          *
          * ## EXAMPLES
          *
-         *     wp pdf-media deduplicate
+         *     wp pdf-media deduplicate --dry-run
          *
          * @when after_wp_load
          */
         public function deduplicate( $args, $assoc_args ) {
-            WP_CLI::log( 'Starting PDF media deduplication...' );
-            // Your deduplication logic here.
+            $this->dry_run = isset( $assoc_args['dry-run'] );
+            if ( $this->dry_run ) {
+                WP_CLI::log( 'Running in dry run mode. No changes will be made.' );
+            } else {
+                WP_CLI::log( 'Running in live mode. Changes will be applied.' );
+            }
+            // Your deduplication logic here, using $this->dry_run to control actions.
             WP_CLI::success( 'PDF media deduplication completed.' );
         }
 
