@@ -67,7 +67,6 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
          */
         public function deduplicate( $args, $assoc_args ) {
             $this->dry_run = isset( $assoc_args['dry-run'] );
-            $this->start_post_id = isset( $assoc_args['start-post-id'] ) ? intval( $assoc_args['start-post-id'] ) : 1;
 
             if ( $this->dry_run ) {
                 WP_CLI::log( 'Running in dry run mode. No changes will be made.' );
@@ -75,12 +74,29 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
                 WP_CLI::log( 'Running in live mode. Changes will be applied.' );
             }
 
-            if ( $this->start_post_id > 1 ) {
-                WP_CLI::log( "Starting from post ID: {$this->start_post_id}" );
-            }
+            $this->determine_start_post_id( $assoc_args );
 
             // Your deduplication logic here, using $this->dry_run and $this->start_post_id to control actions.
             WP_CLI::success( 'PDF media deduplication completed.' );
+        }
+
+        /**
+         * Determine the starting post ID from CLI args or saved option.
+         *
+         * @param array $assoc_args
+         */
+        private function determine_start_post_id( $assoc_args ) {
+            if ( isset( $assoc_args['start-post-id'] ) ) {
+                $this->start_post_id = intval( $assoc_args['start-post-id'] );
+                WP_CLI::log( "Resuming from saved post ID: {$this->start_post_id}" );
+                return; // If a start post ID is provided, it should always take precedence.
+            }
+
+            $saved_start_post_id = get_option( 'one-time-script-pdf-deduplication-start-post-id' );
+            if ( $saved_start_post_id ) {
+                $this->start_post_id = intval( $saved_start_post_id );
+                WP_CLI::log( "Resuming from saved post ID: {$this->start_post_id}" );
+            }
         }
 
         private function get_pdf_posts() {
@@ -110,6 +126,15 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
             }
 
             return $results;
+        }
+
+        /**
+         * Save the last processed post ID to the wp_options table.
+         */
+        private function save_last_post_id_to_options() {
+            if ( ! is_null( $this->last_post_id ) ) {
+                update_option( 'one-time-script-pdf-deduplication-start-post-id', $this->last_post_id );
+            }
         }
     }
 
