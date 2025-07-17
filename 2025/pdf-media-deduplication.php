@@ -1,4 +1,19 @@
 <?php
+/**
+ * PDF Media Deduplication WP-CLI Command
+ *
+ * Usage:
+ *   wp pdf-media deduplicate [--dry-run] [--start-post-id=<id>]
+ *
+ * Examples:
+ *   wp pdf-media deduplicate --dry-run
+ *   wp pdf-media deduplicate --start-post-id=500
+ *   wp pdf-media deduplicate --dry-run --start-post-id=1000
+ *
+ * Place this file in your WordPress environment and run the above commands from the terminal.
+ */
+
+use WP_CLI;
 // File: pdf-media-deduplication.php
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
